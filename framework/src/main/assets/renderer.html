@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, sans-serif; font-size: 16px; color: #333; }
+  #app { width: 100%; min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ============================================================
+// Renderer Shell — dumb rendering terminal
+// No business logic here. Only DOM manipulation + patch application.
+// ============================================================
+
+var appRoot = document.getElementById('app');
+
+// ---- Pull-based communication with Native ----
+
+/**
+ * First render: full HTML replace.
+ */
+function __pullAndRenderHTML__() {
+  var html = window.__rendererBridge__.pullHTML();
+  if (html) {
+    appRoot.innerHTML = html;
+    bindAllEvents();
+  }
+}
+
+/**
+ * Incremental render: apply diff patches to existing DOM.
+ */
+function __pullAndApplyPatches__() {
+  var patchesJson = window.__rendererBridge__.pullPatches();
+  if (!patchesJson) return;
+  try {
+    var patches = JSON.parse(patchesJson);
+    applyPatches(patches);
+  } catch (e) {
+    console.error('applyPatches error', e);
+  }
+}
+
+// ---- Patch constants (must match framework.js) ----
+
+var PATCH_REPLACE = 1;
+var PATCH_PROPS   = 2;
+var PATCH_TEXT    = 3;
+var PATCH_INSERT  = 4;
+var PATCH_REMOVE  = 5;
+
+// ---- Patch application ----
+
+function applyPatches(patches) {
+  for (var i = 0; i < patches.length; i++) {
+    applyPatch(patches[i]);
+  }
+}
+
+function applyPatch(patch) {
+  switch (patch.t) {
+    case PATCH_TEXT: {
+      var node = findNodeByPath(patch.p);
+      if (node) node.textContent = patch.text;
+      break;
+    }
+    case PATCH_PROPS: {
+      var node = findNodeByPath(patch.p);
+      if (node && node.nodeType === 1) updateProps(node, patch.props);
+      break;
+    }
+    case PATCH_REPLACE: {
+      var node = findNodeByPath(patch.p);
+      if (node && node.parentNode) {
+        var newNode = createDOM(patch.vnode);
+        node.parentNode.replaceChild(newNode, node);
+      }
+      break;
+    }
+    case PATCH_INSERT: {
+      var parent = findNodeByPath(patch.p);
+      if (parent) {
+        var newNode = createDOM(patch.vnode);
+        var ref = parent.childNodes[patch.index] || null;
+        parent.insertBefore(newNode, ref);
+      }
+      break;
+    }
+    case PATCH_REMOVE: {
+      var parent = findNodeByPath(patch.p);
+      if (parent && parent.childNodes[patch.index]) {
+        parent.removeChild(parent.childNodes[patch.index]);
+      }
+      break;
+    }
+  }
+}
+
+// ---- DOM traversal ----
+
+/**
+ * Find a DOM node by VNode path.
+ * path [] → appRoot.firstChild (the root VNode's element)
+ * path [0] → root's first childNode
+ * path [1, 2] → root's second child's third child
+ */
+function findNodeByPath(path) {
+  var node = appRoot.firstChild;
+  for (var i = 0; i < path.length; i++) {
+    if (!node) return null;
+    node = node.childNodes[path[i]];
+  }
+  return node;
+}
+
+// ---- DOM creation from VNode ----
+
+function createDOM(vnode) {
+  if (vnode.type === '__TEXT__') {
+    return document.createTextNode(vnode.text);
+  }
+
+  var el = document.createElement(vnode.type);
+  var props = vnode.props;
+  for (var key in props) {
+    if (!props.hasOwnProperty(key)) continue;
+    var val = props[key];
+    if (val === false || val == null) continue;
+    if (key === 'bindtap' || key === 'bindlongtap') {
+      el.setAttribute('data-' + key, val);
+    } else {
+      el.setAttribute(key, String(val));
+    }
+  }
+
+  for (var i = 0; i < vnode.children.length; i++) {
+    el.appendChild(createDOM(vnode.children[i]));
+  }
+
+  // Bind events on this subtree
+  bindEventsOnSubtree(el);
+  return el;
+}
+
+function updateProps(el, props) {
+  for (var key in props) {
+    if (!props.hasOwnProperty(key)) continue;
+    var val = props[key];
+    var attrName = (key === 'bindtap' || key === 'bindlongtap') ? 'data-' + key : key;
+    if (val === null) {
+      el.removeAttribute(attrName);
+    } else {
+      el.setAttribute(attrName, String(val));
+    }
+  }
+}
+
+// ---- Event binding ----
+
+function bindAllEvents() {
+  var elements = appRoot.querySelectorAll('[data-bindtap]');
+  for (var i = 0; i < elements.length; i++) {
+    attachTapEvent(elements[i]);
+  }
+}
+
+function bindEventsOnSubtree(el) {
+  if (el.getAttribute && el.getAttribute('data-bindtap')) {
+    attachTapEvent(el);
+  }
+  if (el.querySelectorAll) {
+    var elements = el.querySelectorAll('[data-bindtap]');
+    for (var i = 0; i < elements.length; i++) {
+      attachTapEvent(elements[i]);
+    }
+  }
+}
+
+function attachTapEvent(el) {
+  if (el.__tapBound) return;
+  el.__tapBound = true;
+  el.addEventListener('click', function(e) {
+    var eventData = {
+      type: 'tap',
+      handlerName: el.getAttribute('data-bindtap'),
+      dataset: {},
+      timestamp: Date.now()
+    };
+    var attrs = el.attributes;
+    for (var j = 0; j < attrs.length; j++) {
+      if (attrs[j].name.indexOf('data-v-') === 0) {
+        var key = attrs[j].name.substring(7);
+        eventData.dataset[key] = attrs[j].value;
+      }
+    }
+    if (window.__rendererBridge__) {
+      window.__rendererBridge__.postEvent(JSON.stringify(eventData));
+    }
+  });
+}
+</script>
+</body>
+</html>

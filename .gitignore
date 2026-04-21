@@ -1,0 +1,60 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration
+local.properties
+
+# Log/OS files
+*.log
+*.swp
+.DS_Store
+
+# Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Keystore files
+*.jks
+*.keystore
+
+# Generated files
+captures/
+output.json
+
+# APKs
+*.apk
+*.ap_*
+
+# NDK
+obj/
+.externalNativeBuild/
+.cxx/
+
+# Misc
+*.class
+*.dex
+*.apk
+*.ap_*
+*.so
+*.jar
+*.war
+*.ear
+
+# VS Code
+.vscode/
+
+# Test reports
+/test-output/
+
+# Mac system files
+Icon?
+
+# Node/npm (if used for tooling)
+node_modules/
+
+# Python virtualenv (if used)
+venv/
