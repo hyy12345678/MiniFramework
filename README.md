@@ -120,7 +120,53 @@ flowchart TD
 3. 业务 JS 通过桥接与 Native 通信，渲染结果推送到 WebView
 4. WebView 只负责渲染，不执行业务 JS，事件回传给 V8 线程处理
 
-## 关键文件说明
+## 新增：页面跳转与多页面示例
+
+本次更新支持 JS 侧页面跳转能力，演示了多页面切换的完整流程：
+
+- **页面跳转机制**：业务 JS 通过 mini.callAPI('navigation', 'navigateTo', { page: 'pages/second.js' }) 请求 Native 加载新页面脚本，实现页面间跳转。
+- **示例页面**：
+  - `pages/demo.js`：主页面，包含“跳转到第二页”按钮，点击后通过 JSBridge 跳转到 second.js。
+  - `pages/second.js`：第二页，包含“返回首页”按钮，点击后通过 JSBridge 跳转回 demo.js。
+- **注意事项**：所有页面 JS 需用 MiniFramework.Page 声明式注册，页面内容用 h(...) 虚拟 DOM 构建，不能直接操作 document/DOM。
+
+**示例代码片段：**
+
+_demo.js_
+```js
+MiniFramework.Page({
+  // ...
+  onJumpPage: function() {
+    if (typeof mini !== 'undefined' && mini.callAPI) {
+      mini.callAPI('navigation', 'navigateTo', { page: 'pages/second.js' });
+    }
+  }
+});
+```
+
+_second.js_
+```js
+MiniFramework.Page({
+  render: function() {
+    return h('div', {},
+      h('h2', null, 'Second Page'),
+      h('div', { bindtap: 'onBack' }, '返回首页')
+    );
+  },
+  onBack: function() {
+    if (typeof mini !== 'undefined' && mini.callAPI) {
+      mini.callAPI('navigation', 'navigateTo', { page: 'pages/demo.js' });
+    }
+  }
+});
+```
+
+- **V8 线程专用**：页面 JS 运行在 V8 线程，不能直接用 document/DOM API。
+- **JSBridge 通信**：推荐统一用 mini.callAPI 进行 Native 通信。
+
+更多细节见 pages/demo.js、pages/second.js 及 MiniFramework 源码。
+
+### 关键文件说明
 
 - `framework/src/main/assets/framework.js`：JS 侧运行时，负责桥接通信、vNode、diff/patch 等
 - `framework/src/main/java/com/mini/framework/MiniFramework.java`：框架入口，初始化各核心组件

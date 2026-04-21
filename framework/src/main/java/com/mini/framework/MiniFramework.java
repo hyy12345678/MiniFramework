@@ -67,6 +67,7 @@ public class MiniFramework {
 
         // 5. Register the render module handler
         messageBus.registerHandler(new RenderHandler());
+        messageBus.registerHandler(new NavigationHandler());
 
         // 6. Wire renderer events back to JS engine
         Gson gson = new Gson();
@@ -192,6 +193,37 @@ public class MiniFramework {
                 return value != null ? value.toString() : null;
             }
             return null;
+        }
+    }
+
+    /**
+     * MessageHandler for the "navigation" module，支持 JSBridge 页面跳转。
+     */
+    private class NavigationHandler implements MessageHandler {
+        @Override
+        public String getModule() {
+            return "navigation";
+        }
+
+        @Override
+        public void onMessage(BridgeMessage message, Callback callback) {
+            String method = message.getMethod();
+            if ("navigateTo".equals(method)) {
+                Object data = message.getData();
+                String page = null;
+                if (data instanceof Map) {
+                    Object pageObj = ((Map<?, ?>) data).get("page");
+                    if (pageObj != null) page = pageObj.toString();
+                }
+                if (page != null) {
+                    loadScriptFromAsset(page);
+                    callback.onResult(null);
+                } else {
+                    callback.onError(-1, "Missing page param");
+                }
+            } else {
+                callback.onError(-1, "Unknown navigation method: " + method);
+            }
         }
     }
 }

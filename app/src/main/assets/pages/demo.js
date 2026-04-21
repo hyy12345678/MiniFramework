@@ -48,7 +48,11 @@ MiniFramework.Page({
       h('div', {
         bindtap: 'onAddItem',
         style: 'margin-top: 16px; padding: 12px; background: #07c160; color: white; text-align: center; border-radius: 8px; cursor: pointer;'
-      }, '+ Add Item')
+      }, '+ Add Item'),
+      h('div', {
+        bindtap: 'onJumpPage',
+        style: 'margin-top: 16px; padding: 12px; background: #1989fa; color: white; text-align: center; border-radius: 8px; cursor: pointer;'
+      }, '跳转到第二页')
     );
   },
 
@@ -69,5 +73,13 @@ MiniFramework.Page({
     var items = data.items.slice();
     items.push({ id: newId, name: 'New Item #' + newId });
     MiniFramework.setData({ items: items });
+  },
+
+  onJumpPage: function() {
+    if (typeof mini !== 'undefined' && mini.callAPI) {
+      mini.callAPI('navigation', 'navigateTo', { page: 'pages/second.js' });
+    } else {
+      console.warn('mini.callAPI not found');
+    }
   }
 });
