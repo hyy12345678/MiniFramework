@@ -1,0 +1,104 @@
+/* pages/index.wxss */
+.page-index .container {
+  padding: 16px;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.page-index .title {
+  display: block;
+  font-size: 22px;
+  font-weight: bold;
+  color: #111;
+  margin-bottom: 12px;
+}
+
+.page-index .sub-title {
+  display: block;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.page-index .list-panel {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.page-index .list-item {
+  padding: 12px 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.page-index .item-text {
+  color: #111;
+  font-size: 16px;
+}
+
+.page-index .cta {
+  margin-top: 18px;
+  color: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+}
+
+.page-index .success {
+  background: #07c160;
+}
+
+.page-index .primary {
+  background: #1989fa;
+}
+
+/* pages/second.wxss */
+.page-second .container {
+  padding: 24px;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.page-second .title {
+  display: block;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.page-second .desc {
+  display: block;
+  font-size: 15px;
+  color: #666;
+}
+
+.page-second .from-index-panel {
+  margin-top: 16px;
+  padding: 10px;
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+  background: #f7f7f7;
+}
+
+.page-second .from-index-title {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.page-second .from-index-content {
+  display: block;
+  font-size: 13px;
+  color: #111;
+  margin-bottom: 4px;
+}
+
+.page-second .back-btn {
+  margin-top: 24px;
+  background: #07c160;
+  color: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+}
+

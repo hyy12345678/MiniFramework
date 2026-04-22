@@ -64,6 +64,12 @@ public class V8Engine implements IJSEngine {
     public void evaluate(String script, String sourceUrl) {
         postToEngine(() -> {
             try {
+                Log.i(TAG, "Evaluating script: " + sourceUrl);
+                if (script != null) {
+                    Log.i(TAG, "Script content (first 1000):\n" + script.substring(0, Math.min(script.length(), 1000)));
+                } else {
+                    Log.w(TAG, "Script is null for " + sourceUrl);
+                }
                 if (v8Runtime != null) {
                     v8Runtime.getExecutor(script).setResourceName(sourceUrl).executeVoid();
                 }

@@ -69,6 +69,13 @@ public class WebViewRenderer implements IRenderer {
     }
 
     @Override
+    public void applyCSS(String cssText) {
+        if (webView == null) return;
+        rendererBridge.cssQueue.offer(cssText);
+        webView.post(() -> webView.evaluateJavascript("__pullAndApplyCSS__()", null));
+    }
+
+    @Override
     public View getView() {
         return webView;
     }
@@ -99,6 +106,7 @@ public class WebViewRenderer implements IRenderer {
     private class RendererBridge {
         final ConcurrentLinkedQueue<String> htmlQueue = new ConcurrentLinkedQueue<>();
         final ConcurrentLinkedQueue<String> patchesQueue = new ConcurrentLinkedQueue<>();
+        final ConcurrentLinkedQueue<String> cssQueue = new ConcurrentLinkedQueue<>();
 
         @JavascriptInterface
         public String pullHTML() {
@@ -115,6 +123,17 @@ public class WebViewRenderer implements IRenderer {
         public String pullPatches() {
             // For patches, each one matters — return the earliest, JS will be called once per patch
             return patchesQueue.poll();
+        }
+
+        @JavascriptInterface
+        public String pullCSS() {
+            // For CSS, only the latest matters — drain and return last
+            String last = null;
+            String item;
+            while ((item = cssQueue.poll()) != null) {
+                last = item;
+            }
+            return last;
         }
 
         @JavascriptInterface

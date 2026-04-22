@@ -22,10 +22,16 @@ public class MainActivity extends Activity {
         framework = new MiniFramework(this);
         framework.init(container);
 
-        // Script loading is deferred until the renderer signals ready
-        framework.loadScriptFromAsset("pages/demo.js");
-        Log.i(TAG, "Demo page load requested");
+        // --------------加载 mini-compiler 产物 BEGIN---------------
+        // MiniFramework 内部会在 renderer ready 后按顺序执行这些任务
+        framework.loadStyleFromAsset("app/app.css");
+        framework.loadScriptFromAsset("app/app-service.js");
+        framework.loadScriptFromAsset("app/app-view.js");
+        Log.i(TAG, "MiniCompiler产物加载请求已提交");
+        // --------------加载 mini-compiler 产物 END  ---------------
+
     }
+
 
     @Override
     protected void onDestroy() {

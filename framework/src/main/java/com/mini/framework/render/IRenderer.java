@@ -15,6 +15,8 @@ public interface IRenderer {
 
     void applyPatches(String patchesJson);
 
+    void applyCSS(String cssText);
+
     View getView();
 
     void destroy();

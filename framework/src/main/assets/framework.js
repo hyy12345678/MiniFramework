@@ -57,6 +57,9 @@
   // ---- Native API calls ----
 
   function callNativeAPI(module, method, data, callbacks) {
+    if (module === 'render' && method === 'renderHTML') {
+      console.log('[mini] callNativeAPI renderHTML', data && data.html);
+    }
     var id = generateId();
     var message = {
       id: id,
@@ -124,10 +127,13 @@
    * DOM childNodes indices match VNode children indices exactly.
    */
   function vnodeToHTML(vnode) {
+    console.log('[mini] vnodeToHTML input', JSON.stringify(vnode));
     if (vnode.type === '__TEXT__') {
+      console.log('[mini] vnodeToHTML text', vnode.text);
       return escapeHTML(vnode.text);
     }
     var html = '<' + vnode.type;
+    console.log('[mini] vnodeToHTML tag', vnode.type, vnode.props);
     var props = vnode.props;
     for (var key in props) {
       if (!props.hasOwnProperty(key)) continue;
@@ -253,6 +259,14 @@
       currentVNode = null;
       eventHandlers = config.methods || {};
 
+      // 兼容小程序 Page 实例写法：this.setData()/this.getData()
+      config.setData = function(partialData) {
+        MiniFramework.setData(partialData);
+      };
+      config.getData = function() {
+        return MiniFramework.getData();
+      };
+
       // Also collect top-level functions as event handlers
       for (var key in config) {
         if (typeof config[key] === 'function' && key !== 'onLoad' && key !== 'onShow'
@@ -365,6 +379,12 @@
   // ---- Expose globals ----
 
   this.MiniFramework = MiniFramework;
+  this.Page = function(config) {
+    return MiniFramework.Page(config);
+  };
+  this.getCurrentPages = function() {
+    return currentPageConfig ? [currentPageConfig] : [];
+  };
   this.h = h;
   this.mini = {
     callAPI: callNativeAPI

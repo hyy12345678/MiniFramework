@@ -20,6 +20,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -80,11 +82,15 @@ public class MiniFramework {
         // 7. Listen for renderer ready
         webViewRenderer.setReadyCallback(() -> {
             rendererReady = true;
-            Log.i(TAG, "Renderer ready, executing pending load");
-            if (pendingLoad != null) {
-                pendingLoad.run();
-                pendingLoad = null;
+            Log.i(TAG, "Renderer ready, executing pending loads");
+            for (Runnable pending : pendingLoads) {
+                try {
+                    pending.run();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error while executing pending load", e);
+                }
             }
+            pendingLoads.clear();
         });
 
         // 8. Load the JS framework
@@ -94,7 +100,7 @@ public class MiniFramework {
     }
 
     private boolean rendererReady = false;
-    private Runnable pendingLoad = null;
+    private final List<Runnable> pendingLoads = new ArrayList<>();
 
     public void loadScript(String script, String sourceUrl) {
         runWhenReady(() -> {
@@ -113,11 +119,20 @@ public class MiniFramework {
         });
     }
 
+    public void loadStyleFromAsset(String assetPath) {
+        runWhenReady(() -> {
+            String cssText = readAsset(assetPath);
+            if (cssText != null && renderer != null) {
+                renderer.applyCSS(cssText);
+            }
+        });
+    }
+
     private void runWhenReady(Runnable task) {
         if (rendererReady) {
             task.run();
         } else {
-            pendingLoad = task;
+            pendingLoads.add(task);
         }
     }
 

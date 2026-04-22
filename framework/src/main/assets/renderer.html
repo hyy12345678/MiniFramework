@@ -7,6 +7,19 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, sans-serif; font-size: 16px; color: #333; }
   #app { width: 100%; min-height: 100vh; }
+
+  /* WXML-like element defaults */
+  view { display: block; }
+  text { display: inline; }
+  button {
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -44,6 +57,21 @@ function __pullAndApplyPatches__() {
   } catch (e) {
     console.error('applyPatches error', e);
   }
+}
+
+/**
+ * Apply app-level CSS text from Native.
+ */
+function __pullAndApplyCSS__() {
+  var cssText = window.__rendererBridge__.pullCSS();
+  if (!cssText) return;
+  var styleEl = document.getElementById('__mini_app_css__');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = '__mini_app_css__';
+    document.head.appendChild(styleEl);
+  }
+  styleEl.textContent = cssText;
 }
 
 // ---- Patch constants (must match framework.js) ----
