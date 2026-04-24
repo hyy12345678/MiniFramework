@@ -30,6 +30,11 @@ public class MainActivity extends Activity {
         Log.i(TAG, "MiniCompiler产物加载请求已提交");
         // --------------加载 mini-compiler 产物 END  ---------------
 
+        // --------- 回归测试 step1 的 demo 页面（未使用 mini-compiler 生成）BEGIN -------
+        //// 注意：demo.js 是运行在 V8 的脚本，应当作为脚本加载而非样式
+        // framework.loadScriptFromAsset("pages/demo.js");
+        // --------- 回归测试 step1 的 demo 页面（未使用 mini-compiler 生成）END -------
+
     }
 
 
